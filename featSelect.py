@@ -3,7 +3,7 @@ import time
 def ReadFile(): # Load data
     data = []
     fileName = input('Type the name of the file to test: ')
-    print(f'Loading data from {fileName}...')
+    print(f'Loading data from {fileName}...\n')
     dataFile = open(fileName, 'r')
     for y in dataFile:
         entry = [float(num) for num in y.split()] #one row/instance
@@ -83,15 +83,17 @@ def BackwardElimination(data, defaultRate):
     print(f"\nFinished search!\nThe best feature set is {bestState} with an accuracy of {round(100*best, 1)}%")
 
 def main():
+    print('Welcome to the Feature Selection Program!')
     data = ReadFile()
     print(f'This dataset has {len(data[0])-1} features, with {len(data)} instances.\n')
+    algorithm = input('Type the number of the algorithm you want to use:\n1. Forward Selection\n2. Backward Elimination\n> ')
     ones = [1 for i in data if i[0] == 1.0]
     twos = [1 for i in data if i[0] == 2.0]
     defaultRate = max(len(ones), len(twos)) / len(data)
-    print(f"The default rate is: {round(defaultRate*100,1)}%")
+    print(f"\nThe default rate is: {round(defaultRate*100,1)}%")
     begin = time.time()
-    # ForwardSelection(data, defaultRate)
-    BackwardElimination(data, defaultRate)
+    ForwardSelection(data, defaultRate) if algorithm == '1' else BackwardElimination(data, defaultRate)
     end = time.time()
     print(f"Runtime: {round(end-begin, 2)} seconds or {round((end-begin)/60, 2)} minutes")
+    
 main()
