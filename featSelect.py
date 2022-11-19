@@ -2,7 +2,8 @@ import math
 
 def ReadFile(): # Load data
     data = []
-    fileName = 'CS170_Small_Data__96.txt'
+    fileName = 'CS170_Large_Data__35.txt'
+    print(f'Loading data from {fileName}...')
     dataFile = open(fileName, 'r')
     for y in dataFile:
         entry = [float(num) for num in y.split()] #one row/instance
@@ -15,7 +16,7 @@ def NearestNeighbor(data, features): #using leave-one-out cross validation
     success = 0
     for i in range(len(data)):
         minDist = float('inf')
-        minLocation = 10e6
+        minLocation = int(10e6)
         for j in range(len(data)):
             if i != j:
                 distance = 0.0
@@ -25,7 +26,6 @@ def NearestNeighbor(data, features): #using leave-one-out cross validation
                 if distance < minDist:
                     minDist = distance
                     minLocation = j
-        # check if success or failure
         if data[i][0] == data[minLocation][0]:
             success += 1
     accuracy = success / len(data)
@@ -45,43 +45,34 @@ def FowardSelection(data, defaultRate):
                 tempState = currState.copy()
                 tempState.add(j)
                 states.append(tempState)
-        # print("states: ", states)
         for state in states:
             accuracy = NearestNeighbor(data, state)
             accuracies.append(accuracy)
+            print(f"\tUsing feature(s) {state}, accuracy is {round(accuracy*100, 1)}%")
             if accuracy > best:
                 best = accuracy
                 bestState = state
         idx = accuracies.index(max(accuracies))
-        # print("Accuracy list:", accuracies)
-        # print("index:", idx)
-        print("For i ==", i, "Best feature set: ", states[idx], "Accuracy:", accuracies[idx])
+        print(f"Feature set {states[idx]} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
         currState = states[idx]
-    print("Best accuracy: ", best)
-    print("Best state: ", bestState)
+    print(f"\nFinished search!\nThe best feature set is {bestState} with an accuracy of {round(100*best, 1)}%")
 
-def testSelect(data, defaultRate):
-    numFeatures = len(data[0]) # number of features + 1
-    currState = set() # current state of features
-    best = defaultRate
-    bestState = currState
-    accuracy = NearestNeighbor(data, {1,5,4})
-    print("Test Accuracy: ", accuracy)
-    if accuracy > best:
-        best = accuracy
-        bestState = {1,5,4}
-    print("Best accuracy: ", best)
-    print("Best state: ", bestState)       
+def TestNN(data, features):
+    print("\nTesting Nearest Neighbor...")
+    print('Hard coded feature set:', features)
+    accuracy = NearestNeighbor(data, features)
+    print(f"NearestNeighbor returned an accuracy of: {100*accuracy}%")
 
 def main():
     data = ReadFile()
-    print(f'This dataset has {len(data[0])-1} features, with {len(data)} instances.')
+    print(f'This dataset has {len(data[0])-1} features, with {len(data)} instances.\n')
     ones = [1 for i in data if i[0] == 1.0]
     twos = [1 for i in data if i[0] == 2.0]
     defaultRate = max(len(ones), len(twos)) / len(data)
-    print("Default rate: ", defaultRate)
-    # FowardSelection(data, defaultRate)
-    testSelect(data, defaultRate)
+    print(f"The default rate is: {round(defaultRate*100,1)}%")
+    FowardSelection(data, defaultRate)
+    # TestNN(data, {1,5,4})
+    # TestNN(data, {5,2,3})
+    # TestNN(data, {1,4,2})
 
-if __name__ == "__main__":
-    main()
+main()
