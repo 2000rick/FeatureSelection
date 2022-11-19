@@ -1,8 +1,8 @@
 import math
-
+import time
 def ReadFile(): # Load data
     data = []
-    fileName = 'CS170_Large_Data__35.txt'
+    fileName = input('Type the name of the file to test: ')
     print(f'Loading data from {fileName}...')
     dataFile = open(fileName, 'r')
     for y in dataFile:
@@ -12,7 +12,6 @@ def ReadFile(): # Load data
     return data
 
 def NearestNeighbor(data, features): #using leave-one-out cross validation
-    # features: the set of features to use/evaluate
     success = 0
     for i in range(len(data)):
         minDist = float('inf')
@@ -20,7 +19,7 @@ def NearestNeighbor(data, features): #using leave-one-out cross validation
         for j in range(len(data)):
             if i != j:
                 distance = 0.0
-                for feature in features:
+                for feature in features: # features: the set of features to use/evaluate
                     distance += (data[i][feature] - data[j][feature]) ** 2
                 distance = math.sqrt(distance)
                 if distance < minDist:
@@ -31,13 +30,12 @@ def NearestNeighbor(data, features): #using leave-one-out cross validation
     accuracy = success / len(data)
     return accuracy
 
-def FowardSelection(data, defaultRate):
+def ForwardSelection(data, defaultRate):
     numFeatures = len(data[0]) # number of features + 1
     currState = set() # current state of features
     best = defaultRate
     bestState = currState
-    #iteratively add/select features
-    for i in range(1, numFeatures):
+    for i in range(1, numFeatures): #iteratively add/select features
         states = list()
         accuracies = list()
         for j in range(1, numFeatures):
@@ -53,15 +51,36 @@ def FowardSelection(data, defaultRate):
                 best = accuracy
                 bestState = state
         idx = accuracies.index(max(accuracies))
-        print(f"Feature set {states[idx]} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
         currState = states[idx]
+        print(f"Feature set {states[idx]} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
     print(f"\nFinished search!\nThe best feature set is {bestState} with an accuracy of {round(100*best, 1)}%")
 
-def TestNN(data, features):
-    print("\nTesting Nearest Neighbor...")
-    print('Hard coded feature set:', features)
-    accuracy = NearestNeighbor(data, features)
-    print(f"NearestNeighbor returned an accuracy of: {100*accuracy}%")
+def BackwardElimination(data, defaultRate):
+    numFeatures = len(data[0]) # number of features + 1
+    currState = {i for i in range(1, numFeatures)} # current set of features (all)
+    accuracy_all = NearestNeighbor(data, currState) # accuracy using all features
+    best = max(defaultRate, accuracy_all)
+    bestState = set() if best==defaultRate else currState
+    print(f"Using all features, accuracy is {round(accuracy_all*100, 1)}%")
+    for i in range(1, numFeatures-1): # -1 to exclude the empty set (already computed default rate)
+        states = list()
+        accuracies = list()
+        for j in range(1, numFeatures):
+            if j in currState: #if j is in currrent feature set, try removing it.
+                tempState = currState.copy()
+                tempState.remove(j)
+                states.append(tempState)
+        for state in states:
+            accuracy = NearestNeighbor(data, state)
+            accuracies.append(accuracy)
+            print(f"\tUsing feature(s) {state}, accuracy is {round(accuracy*100, 1)}%")
+            if accuracy > best:
+                best = accuracy
+                bestState = state
+        idx = accuracies.index(max(accuracies))
+        currState = states[idx]
+        print(f"Feature set {states[idx]} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
+    print(f"\nFinished search!\nThe best feature set is {bestState} with an accuracy of {round(100*best, 1)}%")
 
 def main():
     data = ReadFile()
@@ -70,9 +89,9 @@ def main():
     twos = [1 for i in data if i[0] == 2.0]
     defaultRate = max(len(ones), len(twos)) / len(data)
     print(f"The default rate is: {round(defaultRate*100,1)}%")
-    FowardSelection(data, defaultRate)
-    # TestNN(data, {1,5,4})
-    # TestNN(data, {5,2,3})
-    # TestNN(data, {1,4,2})
-
+    begin = time.time()
+    # ForwardSelection(data, defaultRate)
+    BackwardElimination(data, defaultRate)
+    end = time.time()
+    print(f"Runtime: {round(end-begin, 2)} seconds or {round((end-begin)/60, 2)} minutes")
 main()
