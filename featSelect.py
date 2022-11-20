@@ -11,7 +11,7 @@ def ReadFile(): # Load data
     dataFile.close()
     return data
 
-def NearestNeighbor(data, features): #using leave-one-out cross validation
+def CrossValidation(data, features): #using leave-one-out cross validation or n-fold CV
     success = 0
     for i in range(len(data)):
         minDist = float('inf')
@@ -40,25 +40,23 @@ def ForwardSelection(data, defaultRate):
         accuracies = list()
         for j in range(1, numFeatures):
             if j not in currState: #if j isn't already added
-                tempState = currState.copy()
-                tempState.add(j)
-                states.append(tempState)
+                states.append(currState.copy().union({j}))
         for state in states:
-            accuracy = NearestNeighbor(data, state)
+            accuracy = CrossValidation(data, state)
             accuracies.append(accuracy)
             print(f"\tUsing feature(s) {state}, accuracy is {round(accuracy*100, 1)}%")
             if accuracy > best:
                 best = accuracy
                 bestState = state
-        idx = accuracies.index(max(accuracies))
-        currState = states[idx]
+        idx = accuracies.index(max(accuracies)) # index of best accuracy at current level/iteration
+        currState = states[idx] # the best feature set at the current level, we expand based on this in the next iteration
         print(f"Feature set {states[idx]} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
     print(f"\nFinished search!\nThe best feature set is {bestState} with an accuracy of {round(100*best, 1)}%")
 
 def BackwardElimination(data, defaultRate):
     numFeatures = len(data[0]) # number of features + 1
     currState = {i for i in range(1, numFeatures)} # current set of features (all)
-    accuracy_all = NearestNeighbor(data, currState) # accuracy using all features
+    accuracy_all = CrossValidation(data, currState) # accuracy using all features
     best = max(defaultRate, accuracy_all)
     bestState = set() if best==defaultRate else currState
     print(f"Using all features, accuracy is {round(accuracy_all*100, 1)}%")
@@ -67,11 +65,9 @@ def BackwardElimination(data, defaultRate):
         accuracies = list()
         for j in range(1, numFeatures):
             if j in currState: #if j is in currrent feature set, try removing it.
-                tempState = currState.copy()
-                tempState.remove(j)
-                states.append(tempState)
+                states.append(currState.copy().difference({j}))
         for state in states:
-            accuracy = NearestNeighbor(data, state)
+            accuracy = CrossValidation(data, state)
             accuracies.append(accuracy)
             print(f"\tUsing feature(s) {state}, accuracy is {round(accuracy*100, 1)}%")
             if accuracy > best:
@@ -95,5 +91,5 @@ def main():
     ForwardSelection(data, defaultRate) if algorithm == '1' else BackwardElimination(data, defaultRate)
     end = time.time()
     print(f"Runtime: {round(end-begin, 2)} seconds or {round((end-begin)/60, 2)} minutes")
-    
+
 main()
