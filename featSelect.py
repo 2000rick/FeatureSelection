@@ -1,4 +1,3 @@
-import math
 import time
 def ReadFile(): # Load data
     data = []
@@ -21,14 +20,13 @@ def CrossValidation(data, features): #using leave-one-out cross validation or n-
                 distance = 0.0
                 for feature in features: # features: the set of features to use/evaluate
                     distance += (data[i][feature] - data[j][feature]) ** 2
-                distance = math.sqrt(distance)
+                distance = distance ** 0.5 # power of 0.5 == sqrt
                 if distance < minDist:
                     minDist = distance
                     minLocation = j
         if data[i][0] == data[minLocation][0]:
             success += 1
-    accuracy = success / len(data)
-    return accuracy
+    return success / len(data)
 
 def ForwardSelection(data, defaultRate):
     numFeatures = len(data[0]) # number of features + 1
@@ -50,7 +48,7 @@ def ForwardSelection(data, defaultRate):
                 bestState = state
         idx = accuracies.index(max(accuracies)) # index of best accuracy at current level/iteration
         currState = states[idx] # the best feature set at the current level, we expand based on this in the next iteration
-        print(f"Feature set {states[idx]} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
+        print(f"Feature set {currState} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
     print(f"\nFinished search!\nThe best feature set is {bestState} with an accuracy of {round(100*best, 1)}%")
 
 def BackwardElimination(data, defaultRate):
@@ -75,7 +73,7 @@ def BackwardElimination(data, defaultRate):
                 bestState = state
         idx = accuracies.index(max(accuracies))
         currState = states[idx]
-        print(f"Feature set {states[idx]} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
+        print(f"Feature set {currState} was best with an accuracy of {round(accuracies[idx]*100, 1)}%")
     print(f"\nFinished search!\nThe best feature set is {bestState} with an accuracy of {round(100*best, 1)}%")
 
 def main():
