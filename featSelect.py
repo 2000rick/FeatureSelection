@@ -1,4 +1,5 @@
 import time
+
 def ReadFile(): # Load data
     data = []
     fileName = input('Type the name of the file to test: ')
