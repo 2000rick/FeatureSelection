@@ -6,8 +6,7 @@ def ReadFile(): # Load data
     print(f'Loading data from {fileName}...\n')
     dataFile = open(fileName, 'r')
     for y in dataFile:
-        entry = [float(num) for num in y.split()] #one row/instance
-        data.append(entry)
+        data.append([float(num) for num in y.split()]) #one row/instance
     dataFile.close()
     return data
 
